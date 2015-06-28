@@ -49,40 +49,10 @@ def recordAudioDemo(request):
     response = render(request, 'record_audio_demo.html')
     return response 
 
-import cv2
-import time
-cap = cv2.VideoCapture(0)
-cap.set(3, 320.0)
-cap.set(4, 240.0)
-
-def jpegStream():
-	while cap.isOpened():
-		ret, frame = cap.read()
-		if ret:
-			ret, data = cv2.imencode('.jpg', frame)
-		data = data.tostring()
-		print 'a jpeg'
-		res  = '--liushuo\r\n'
-		res += 'Content-Type: image/jpeg\r\n'
-		res += 'Content-Length: %s\r\n\r\n' % len(data)
-		res += data
-		yield res
-		#time.sleep(0.05)
-
-def cameraDemo(request):
-	if not request.GET.get('action', None):
-		return render(request, 'stream.html')
-
-	print 'stream'
-	response = StreamingHttpResponse(jpegStream(), content_type='multipart/x-mixed-replace; boundary=liushuo')
-	return response
-
-'''
 def cameraDemo(request):
 	response = StreamingHttpResponse()
 	
     return render(request, 'camera_demo.html')
-'''
 
 @csrf_exempt
 def control(request):

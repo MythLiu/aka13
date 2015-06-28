@@ -22,7 +22,7 @@ function record() {
     mediaStream = localMediaStream;
     var mediaStreamSource = context.createMediaStreamSource(localMediaStream);
     rec = new Recorder(mediaStreamSource, {
-      workerPath: '/static/js/Recorderjs/recorderWorker.js'
+      workerPath: '/static/js/Recorderjs/recorderWorker.js',
     });
 
     rec.record();
@@ -37,7 +37,12 @@ function stop() {
 
   rec.exportWAV(function(e){
     rec.clear();
-    Recorder.forceDownload(e, "test.wav");
+    //Recorder.forceDownload(e, "test.wav");
+	Recorder.sendToServer(e, "/demo/", function(html) {
+		//alert(html);
+		e = document.getElementById('command_text');
+		e.innerHTML = html
+	});
   });
 }
 
