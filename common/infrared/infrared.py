@@ -11,7 +11,7 @@ START_COMMAND_HIGH_DURATION 	= 0.0045
 START_REPEAT_HIGH_DURATION		= 0.00225
 
 class InfraredReciever:
-	DEFAULT_RECV_GPIO_PIN 	= 20
+	DEFAULT_RECV_GPIO_PIN 	= 16
 	# COMMAND:
 	#__     9ms	     	   _________    
 	#  |__________________|   4.5   |____
@@ -22,11 +22,11 @@ class InfraredReciever:
 
 	def __init__(self, pin=DEFAULT_RECV_GPIO_PIN):
 		self.initGPIO(pin)
+		self.recvPin = pin
 
 	def initGPIO(self, pin):
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(pin, GPIO.IN, GPIO.PUD_DOWN)
-		self.recvPin = pin
 
 	def cleanupGPIO(self):
 		GPIO.cleanup()

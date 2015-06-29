@@ -97,3 +97,18 @@ def audioDemo(request):
 			raise
 
 	return response 
+
+# --------------------------------------------------------------------------------
+# 声波测距: /demo/sound_ranging
+# --------------------------------------------------------------------------------
+
+def soundRanging(request):
+	if soundRanging.sd is None:
+		from common.soundranging import SoundRanging
+		soundRanging.sd = SoundRanging()
+	distance = soundRanging.sd.getDistance()
+	return HttpResponse(u'距离障碍 : %.2f cm' % distance)
+
+soundRanging.sd = None 
+	
+	
