@@ -41,7 +41,7 @@ class MotorControllor:
 		gb.set_brush_ramps(BOARD, BACK_RIGHT,RAMP,RAMP, 0)
 
 	def runMotor(self, motorId, direction, speed=1, freq=DEFAULT_PWM_FREQ):
-		gb.pwm_brushed(BOARD, motorId, freq, 50 + speed * 10)
+		gb.pwm_brushed(BOARD, motorId, freq, 70 + speed * 10)
 		gb.move_brushed(BOARD, motorId, direction)
 
 	def stopMotor(self, motorId):

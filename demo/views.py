@@ -1,67 +1,22 @@
+#coding:utf-8
+
 from django.shortcuts import render
 from django.http import HttpResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
-from common.audio.recognition import recognition
-from common.audio.pcm_converter import convert
-from common.motor.motor import MotorControllor  
-
-@csrf_exempt
-def test(request):
-	print request.POST
-	# request.body : wav data, sample_rate = 44100.
-	'''
-	try:
-		pcmData = convert(request.body)
-	except Exception as e:
-		print e
-
-	res = recognition(pcmData)
-	command = res[0]
-	'''
-	command = request.POST['command']
-	mc = MotorControllor.getInstance()
-	if command.find(u'\u524d\u8fdb') >= 0:
-		if command.find(u'\u5de6') >= 0:
-			mc.runFrontLeft(speed=3)
-		elif command.find(u'\u53f3') >= 0:
-			mc.runFrontRight(speed=3)
-		else:
-			mc.runFrontLeft(speed=3)
-			mc.runFrontRight(speed=3)
-			
-	if command.find(u'\u505c\u6b62') >= 0:
-		if command.find(u'\u5de6') >= 0:
-			mc.stopFrontLeft()
-		elif command.find(u'\u53f3') >= 0:
-			mc.stopFrontRight()
-		else:
-			mc.stopFrontLeft()
-			mc.stopFrontRight()
-
-	if res:
-		print res[0]
-	return HttpResponse(res[0])
-
-def recordAudioDemo(request):
-    response = render(request, 'record_audio_demo.html')
-    return response 
+# --------------------------------------------------------------------------------
+# 摄像头: /demo/camera
+# --------------------------------------------------------------------------------
 
 import cv2
-import time
-cap = cv2.VideoCapture(0)
-cap.set(3, 320.0)
-cap.set(4, 240.0)
-
-def jpegStream():
+def jpegStreamer(cap):
 	while cap.isOpened():
 		ret, frame = cap.read()
 		if ret:
 			ret, data = cv2.imencode('.jpg', frame)
 		data = data.tostring()
-		print 'a jpeg'
 		res  = '--liushuo\r\n'
 		res += 'Content-Type: image/jpeg\r\n'
 		res += 'Content-Length: %s\r\n\r\n' % len(data)
@@ -70,26 +25,35 @@ def jpegStream():
 		#time.sleep(0.05)
 
 def cameraDemo(request):
+	if cameraDemo.cap is None:
+		cameraDemo.cap = cv2.VideoCapture(0)
+		cameraDemo.cap.set(3, 320.0)
+		cameraDemo.cap.set(4, 240.0)
+
 	if not request.GET.get('action', None):
 		return render(request, 'stream.html')
 
-	print 'stream'
-	response = StreamingHttpResponse(jpegStream(), content_type='multipart/x-mixed-replace; boundary=liushuo')
+	response = StreamingHttpResponse(jpegStreamer(cameraDemo.cap), 
+					content_type='multipart/x-mixed-replace; boundary=liushuo')
 	return response
+cameraDemo.cap = None
 
-'''
-def cameraDemo(request):
-	response = StreamingHttpResponse()
-	
-    return render(request, 'camera_demo.html')
-'''
+# --------------------------------------------------------------------------------
+# 小车控制: /demo/drive_car 
+# --------------------------------------------------------------------------------
 
 @csrf_exempt
-def control(request):
-	print 'CONTROL ---> ', request.method
+def driveCar(request):
 	if request.method == 'POST':
-		driver = control.carDriver
 		cmd = request.POST['command']
+		if not driveCar.driver:
+			if cmd == 'init':
+				from common.car_driver import CarDriver
+				driveCar.driver = CarDriver()
+				return HttpResponse(u'初始化完成...')
+			return HttpResponse(u'尚未初始化...')
+				
+		driver = driveCar.driver
 		if cmd == 'up':
 			driver.goForward()
 		elif cmd == 'down':
@@ -104,7 +68,32 @@ def control(request):
 			driver.gearUp()
 		elif cmd == 'gear-':
 			driver.gearDown()
-		
-	return HttpResponse('OK')
-from common.car_driver import CarDriver
-control.carDriver = CarDriver()
+
+		return HttpResponse(cmd + ' : OK')
+	return HttpResponse(u'未定义的请求')
+driveCar.driver = None
+
+# --------------------------------------------------------------------------------
+# 声音识别: /demo/audio
+# --------------------------------------------------------------------------------
+
+from common.audio.recognition import recognition
+from common.audio.pcm_converter import convert
+
+@csrf_exempt
+def audioDemo(request):
+	if request.method == 'GET':
+		response = render(request, 'record_audio_demo.html')
+	elif request.method == 'POST':
+		try:
+			import time
+			t = time.time()
+			pcmData = convert(request.body)
+			print time.time() - t
+			res = recognition(pcmData)
+			response = HttpResponse(res[0])
+		except Exception as e:
+			print e
+			raise
+
+	return response 

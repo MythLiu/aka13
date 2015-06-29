@@ -1,10 +1,9 @@
 
 from django.conf.urls import include, url
-from .views import test, recordAudioDemo, cameraDemo, control
+from .views import audioDemo, cameraDemo, driveCar
 
 urlpatterns = [
-    url(r'^$', test),
-    url(r'^audio$', recordAudioDemo),
+    url(r'^audio$', audioDemo),
     url(r'^camera$', cameraDemo),
-    url(r'^control$', control),
+    url(r'^drive_car$', driveCar),
 ]

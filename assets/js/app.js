@@ -38,7 +38,7 @@ function stop() {
   rec.exportWAV(function(e){
     rec.clear();
     //Recorder.forceDownload(e, "test.wav");
-	Recorder.sendToServer(e, "/demo/", function(html) {
+	Recorder.sendToServer(e, "/demo/audio", function(html) {
 		//alert(html);
 		e = document.getElementById('command_text');
 		e.innerHTML = html
